@@ -1,25 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthorizationServer
 {
   public class Startup
   {
-    private const string ConnectionString = "Server=docker; Port=5432; User Id=postgres; Password=; Database=sample;";
-
     public Startup(IConfiguration configuration)
     {
       Configuration = configuration;
@@ -32,12 +24,7 @@ namespace AuthorizationServer
     {
       services.AddControllers();
 
-      services.AddDbContext<SampleDbContext>(options =>
-      {
-        options.UseNpgsql(ConnectionString);
-        options.UseOpenIddict();
-      });
-
+      services.AddDbContext<SampleDbContext>();
       services.AddOpenIddict()
         .AddCore(options =>
         {
