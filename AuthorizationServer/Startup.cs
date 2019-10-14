@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthorizationServer
@@ -22,6 +24,7 @@ namespace AuthorizationServer
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
+      IdentityModelEventSource.ShowPII = true;
       services.AddControllers();
 
       services.AddDbContext<SampleDbContext>();
@@ -34,11 +37,19 @@ namespace AuthorizationServer
         .AddServer(options =>
         {
           options.UseMvc();
-          options.EnableTokenEndpoint("/connect/token");
-          options.AllowClientCredentialsFlow();
+          options.EnableTokenEndpoint("/connect/token")
+            .EnableUserinfoEndpoint("/info/connect")
+            .AllowClientCredentialsFlow()
+            .UseJsonWebTokens();
 
-          options.UseJsonWebTokens();
-          options.AddEphemeralSigningKey();
+          var cspParams = new CspParameters
+          {
+            KeyContainerName = "new_key_container",
+            Flags = CspProviderFlags.UseDefaultKeyContainer
+          };
+          RSAInstance = new RSACryptoServiceProvider(2048, cspParams);
+          var rsaSecurityKey = new RsaSecurityKey(RSAInstance);
+          options.AddSigningKey(rsaSecurityKey);
         });
 
       services.AddAuthentication()
@@ -55,6 +66,8 @@ namespace AuthorizationServer
           };
         });
     }
+
+    public static RSACryptoServiceProvider RSAInstance { get; set; }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

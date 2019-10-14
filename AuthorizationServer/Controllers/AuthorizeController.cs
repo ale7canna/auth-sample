@@ -1,4 +1,7 @@
+using System.IO;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -8,6 +11,7 @@ using OpenIddict.Core;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Mvc.Internal;
 using OpenIddict.Server;
+using Shared;
 
 namespace AuthorizationServer.Controllers
 {
@@ -71,6 +75,28 @@ namespace AuthorizationServer.Controllers
       ticket.SetResources("resource_server");
 
       return ticket;
+    }
+
+    [HttpGet("~/connect/public")]
+    public string PublicKey()
+    {
+      var outputStream = new StreamWriter(new MemoryStream());
+      Utils.ExportPublicKey(Startup.RSAInstance, outputStream);
+      outputStream.Flush();
+      outputStream.BaseStream.Seek(0, SeekOrigin.Begin);
+      var reader = new StreamReader(outputStream.BaseStream);
+      return reader.ReadToEnd();
+    }
+
+    [HttpGet("~/connect/private")]
+    public string PrivateKey()
+    {
+      var outputStream = new StreamWriter(new MemoryStream());
+      Utils.ExportPrivateKey(Startup.RSAInstance, outputStream);
+      outputStream.Flush();
+      outputStream.BaseStream.Seek(0, SeekOrigin.Begin);
+      var reader = new StreamReader(outputStream.BaseStream);
+      return reader.ReadToEnd();
     }
   }
 }

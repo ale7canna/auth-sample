@@ -1,9 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
 using OpenIddict.EntityFrameworkCore.Models;
+using Shared;
 
 namespace AuthorizationServer.Controllers
 {
@@ -21,10 +21,9 @@ namespace AuthorizationServer.Controllers
     [Route("register")]
     public async Task<IActionResult> Register([FromBody]UserRegistration user)
     {
-      var clientId = Guid.NewGuid().ToString();
       await _manager.CreateAsync(new OpenIddictApplicationDescriptor
       {
-        ClientId = clientId,
+        ClientId = user.ClientId,
         ClientSecret = user.Secret,
         DisplayName = user.Name,
         Permissions =
@@ -33,13 +32,7 @@ namespace AuthorizationServer.Controllers
           OpenIddictConstants.Permissions.GrantTypes.ClientCredentials
         }
       });
-      return Created(Request.Host.Value, clientId);
+      return Created(Request.Host.Value, user.ClientId);
     }
-  }
-
-  public class UserRegistration
-  {
-    internal string Secret { get; set; }
-    internal string Name { get; set; }
   }
 }
