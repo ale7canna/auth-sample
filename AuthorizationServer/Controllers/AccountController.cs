@@ -21,6 +21,7 @@ namespace AuthorizationServer.Controllers
     [Route("register")]
     public async Task<IActionResult> Register([FromBody]UserRegistration user)
     {
+      //Check OTP
       await _manager.CreateAsync(new OpenIddictApplicationDescriptor
       {
         ClientId = user.ClientId,
